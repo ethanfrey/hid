@@ -31,110 +31,113 @@ import (
 )
 
 func ioReturnToErr(ret C.IOReturn) error {
-	switch uint64(ret) {
-	case C.kIOReturnSuccess:
+	// it seems that depending on the version of IOKit on osx,
+	// C.IOReturn and C.kIOReturnError may be different types
+	// (uint64 vs int64). Auto-forcing them here...
+	switch ret {
+	case C.IOReturn(C.kIOReturnSuccess):
 		return nil
-	case C.kIOReturnError:
+	case C.IOReturn(C.kIOReturnError):
 		return errors.New("hid: general error")
-	case C.kIOReturnNoMemory:
+	case C.IOReturn(C.kIOReturnNoMemory):
 		return errors.New("hid: can't allocate memory")
-	case C.kIOReturnNoResources:
+	case C.IOReturn(C.kIOReturnNoResources):
 		return errors.New("hid: resource shortage")
-	case C.kIOReturnIPCError:
+	case C.IOReturn(C.kIOReturnIPCError):
 		return errors.New("hid: error during IPC")
-	case C.kIOReturnNoDevice:
+	case C.IOReturn(C.kIOReturnNoDevice):
 		return errors.New("hid: no such device")
-	case C.kIOReturnNotPrivileged:
+	case C.IOReturn(C.kIOReturnNotPrivileged):
 		return errors.New("hid: privilege violation")
-	case C.kIOReturnBadArgument:
+	case C.IOReturn(C.kIOReturnBadArgument):
 		return errors.New("hid: invalid argument")
-	case C.kIOReturnLockedRead:
+	case C.IOReturn(C.kIOReturnLockedRead):
 		return errors.New("hid: device read locked")
-	case C.kIOReturnLockedWrite:
+	case C.IOReturn(C.kIOReturnLockedWrite):
 		return errors.New("hid: device write locked")
-	case C.kIOReturnExclusiveAccess:
+	case C.IOReturn(C.kIOReturnExclusiveAccess):
 		return errors.New("hid: exclusive access and device already open")
-	case C.kIOReturnBadMessageID:
+	case C.IOReturn(C.kIOReturnBadMessageID):
 		return errors.New("hid: sent/received messages had different msg_id")
-	case C.kIOReturnUnsupported:
+	case C.IOReturn(C.kIOReturnUnsupported):
 		return errors.New("hid: unsupported function")
-	case C.kIOReturnVMError:
+	case C.IOReturn(C.kIOReturnVMError):
 		return errors.New("hid: misc. VM failure")
-	case C.kIOReturnInternalError:
+	case C.IOReturn(C.kIOReturnInternalError):
 		return errors.New("hid: internal error")
-	case C.kIOReturnIOError:
+	case C.IOReturn(C.kIOReturnIOError):
 		return errors.New("hid: general I/O error")
-	case C.kIOReturnCannotLock:
+	case C.IOReturn(C.kIOReturnCannotLock):
 		return errors.New("hid: can't acquire lock")
-	case C.kIOReturnNotOpen:
+	case C.IOReturn(C.kIOReturnNotOpen):
 		return errors.New("hid: device not open")
-	case C.kIOReturnNotReadable:
+	case C.IOReturn(C.kIOReturnNotReadable):
 		return errors.New("hid: read not supported")
-	case C.kIOReturnNotWritable:
+	case C.IOReturn(C.kIOReturnNotWritable):
 		return errors.New("hid: write not supported")
-	case C.kIOReturnNotAligned:
+	case C.IOReturn(C.kIOReturnNotAligned):
 		return errors.New("hid: alignment error")
-	case C.kIOReturnBadMedia:
+	case C.IOReturn(C.kIOReturnBadMedia):
 		return errors.New("hid: media Error")
-	case C.kIOReturnStillOpen:
+	case C.IOReturn(C.kIOReturnStillOpen):
 		return errors.New("hid: device(s) still open")
-	case C.kIOReturnRLDError:
+	case C.IOReturn(C.kIOReturnRLDError):
 		return errors.New("hid: rld failure")
-	case C.kIOReturnDMAError:
+	case C.IOReturn(C.kIOReturnDMAError):
 		return errors.New("hid: DMA failure")
-	case C.kIOReturnBusy:
+	case C.IOReturn(C.kIOReturnBusy):
 		return errors.New("hid: device Busy")
-	case C.kIOReturnTimeout:
+	case C.IOReturn(C.kIOReturnTimeout):
 		return errors.New("hid: i/o timeout")
-	case C.kIOReturnOffline:
+	case C.IOReturn(C.kIOReturnOffline):
 		return errors.New("hid: device offline")
-	case C.kIOReturnNotReady:
+	case C.IOReturn(C.kIOReturnNotReady):
 		return errors.New("hid: not ready")
-	case C.kIOReturnNotAttached:
+	case C.IOReturn(C.kIOReturnNotAttached):
 		return errors.New("hid: device not attached")
-	case C.kIOReturnNoChannels:
+	case C.IOReturn(C.kIOReturnNoChannels):
 		return errors.New("hid: no DMA channels left")
-	case C.kIOReturnNoSpace:
+	case C.IOReturn(C.kIOReturnNoSpace):
 		return errors.New("hid: no space for data")
-	case C.kIOReturnPortExists:
+	case C.IOReturn(C.kIOReturnPortExists):
 		return errors.New("hid: port already exists")
-	case C.kIOReturnCannotWire:
+	case C.IOReturn(C.kIOReturnCannotWire):
 		return errors.New("hid: can't wire down physical memory")
-	case C.kIOReturnNoInterrupt:
+	case C.IOReturn(C.kIOReturnNoInterrupt):
 		return errors.New("hid: no interrupt attached")
-	case C.kIOReturnNoFrames:
+	case C.IOReturn(C.kIOReturnNoFrames):
 		return errors.New("hid: no DMA frames enqueued")
-	case C.kIOReturnMessageTooLarge:
+	case C.IOReturn(C.kIOReturnMessageTooLarge):
 		return errors.New("hid: oversized msg received on interrupt port")
-	case C.kIOReturnNotPermitted:
+	case C.IOReturn(C.kIOReturnNotPermitted):
 		return errors.New("hid: not permitted")
-	case C.kIOReturnNoPower:
+	case C.IOReturn(C.kIOReturnNoPower):
 		return errors.New("hid: no power to device")
-	case C.kIOReturnNoMedia:
+	case C.IOReturn(C.kIOReturnNoMedia):
 		return errors.New("hid: media not present")
-	case C.kIOReturnUnformattedMedia:
+	case C.IOReturn(C.kIOReturnUnformattedMedia):
 		return errors.New("hid: media not formatted")
-	case C.kIOReturnUnsupportedMode:
+	case C.IOReturn(C.kIOReturnUnsupportedMode):
 		return errors.New("hid: no such mode")
-	case C.kIOReturnUnderrun:
+	case C.IOReturn(C.kIOReturnUnderrun):
 		return errors.New("hid: data underrun")
-	case C.kIOReturnOverrun:
+	case C.IOReturn(C.kIOReturnOverrun):
 		return errors.New("hid: data overrun")
-	case C.kIOReturnDeviceError:
+	case C.IOReturn(C.kIOReturnDeviceError):
 		return errors.New("hid: the device is not working properly!")
-	case C.kIOReturnNoCompletion:
+	case C.IOReturn(C.kIOReturnNoCompletion):
 		return errors.New("hid: a completion routine is required")
-	case C.kIOReturnAborted:
+	case C.IOReturn(C.kIOReturnAborted):
 		return errors.New("hid: operation aborted")
-	case C.kIOReturnNoBandwidth:
+	case C.IOReturn(C.kIOReturnNoBandwidth):
 		return errors.New("hid: bus bandwidth would be exceeded")
-	case C.kIOReturnNotResponding:
+	case C.IOReturn(C.kIOReturnNotResponding):
 		return errors.New("hid: device not responding")
-	case C.kIOReturnIsoTooOld:
+	case C.IOReturn(C.kIOReturnIsoTooOld):
 		return errors.New("hid: isochronous I/O request for distant past!")
-	case C.kIOReturnIsoTooNew:
+	case C.IOReturn(C.kIOReturnIsoTooNew):
 		return errors.New("hid: isochronous I/O request for distant future")
-	case C.kIOReturnNotFound:
+	case C.IOReturn(C.kIOReturnNotFound):
 		return errors.New("hid: data was not found")
 	default:
 		return errors.New("hid: unknown error")
