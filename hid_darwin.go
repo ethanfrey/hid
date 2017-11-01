@@ -30,114 +30,174 @@ import (
 	"unsafe"
 )
 
+// This table is a necessary evil
+// depending on the osx version (10.12, 10.13) the constants are variously
+// uint64 or int64 and not always the same as C.IOReturn type.
+//
+// The desired action is to cast everything to uint64 and then safely compare the
+// bytes, which works in any version. However, go 1.9+ doesn't allow you to cast
+// int64 to uint64 with constants, only with variables. So, we must assign all the
+// constants to variables, before casting them in the switch.
+var (
+	vIOReturnSuccess          = C.kIOReturnSuccess
+	vIOReturnError            = C.kIOReturnError
+	vIOReturnNoMemory         = C.kIOReturnNoMemory
+	vIOReturnNoResources      = C.kIOReturnNoResources
+	vIOReturnIPCError         = C.kIOReturnIPCError
+	vIOReturnNoDevice         = C.kIOReturnNoDevice
+	vIOReturnNotPrivileged    = C.kIOReturnNotPrivileged
+	vIOReturnBadArgument      = C.kIOReturnBadArgument
+	vIOReturnLockedRead       = C.kIOReturnLockedRead
+	vIOReturnLockedWrite      = C.kIOReturnLockedWrite
+	vIOReturnExclusiveAccess  = C.kIOReturnExclusiveAccess
+	vIOReturnBadMessageID     = C.kIOReturnBadMessageID
+	vIOReturnUnsupported      = C.kIOReturnUnsupported
+	vIOReturnVMError          = C.kIOReturnVMError
+	vIOReturnInternalError    = C.kIOReturnInternalError
+	vIOReturnIOError          = C.kIOReturnIOError
+	vIOReturnCannotLock       = C.kIOReturnCannotLock
+	vIOReturnNotOpen          = C.kIOReturnNotOpen
+	vIOReturnNotReadable      = C.kIOReturnNotReadable
+	vIOReturnNotWritable      = C.kIOReturnNotWritable
+	vIOReturnNotAligned       = C.kIOReturnNotAligned
+	vIOReturnBadMedia         = C.kIOReturnBadMedia
+	vIOReturnStillOpen        = C.kIOReturnStillOpen
+	vIOReturnRLDError         = C.kIOReturnRLDError
+	vIOReturnDMAError         = C.kIOReturnDMAError
+	vIOReturnBusy             = C.kIOReturnBusy
+	vIOReturnTimeout          = C.kIOReturnTimeout
+	vIOReturnOffline          = C.kIOReturnOffline
+	vIOReturnNotReady         = C.kIOReturnNotReady
+	vIOReturnNotAttached      = C.kIOReturnNotAttached
+	vIOReturnNoChannels       = C.kIOReturnNoChannels
+	vIOReturnNoSpace          = C.kIOReturnNoSpace
+	vIOReturnPortExists       = C.kIOReturnPortExists
+	vIOReturnCannotWire       = C.kIOReturnCannotWire
+	vIOReturnNoInterrupt      = C.kIOReturnNoInterrupt
+	vIOReturnNoFrames         = C.kIOReturnNoFrames
+	vIOReturnMessageTooLarge  = C.kIOReturnMessageTooLarge
+	vIOReturnNotPermitted     = C.kIOReturnNotPermitted
+	vIOReturnNoPower          = C.kIOReturnNoPower
+	vIOReturnNoMedia          = C.kIOReturnNoMedia
+	vIOReturnUnformattedMedia = C.kIOReturnUnformattedMedia
+	vIOReturnUnsupportedMode  = C.kIOReturnUnsupportedMode
+	vIOReturnUnderrun         = C.kIOReturnUnderrun
+	vIOReturnOverrun          = C.kIOReturnOverrun
+	vIOReturnDeviceError      = C.kIOReturnDeviceError
+	vIOReturnNoCompletion     = C.kIOReturnNoCompletion
+	vIOReturnAborted          = C.kIOReturnAborted
+	vIOReturnNoBandwidth      = C.kIOReturnNoBandwidth
+	vIOReturnNotResponding    = C.kIOReturnNotResponding
+	vIOReturnIsoTooOld        = C.kIOReturnIsoTooOld
+	vIOReturnIsoTooNew        = C.kIOReturnIsoTooNew
+	vIOReturnNotFound         = C.kIOReturnNotFound
+)
+
 func ioReturnToErr(ret C.IOReturn) error {
-	// it seems that depending on the version of IOKit on osx,
-	// C.IOReturn and C.kIOReturnError may be different types
-	// (uint64 vs int64). Auto-forcing them here...
-	switch ret {
-	case C.IOReturn(C.kIOReturnSuccess):
+	switch uint64(ret) {
+	case uint64(vIOReturnSuccess):
 		return nil
-	case C.IOReturn(C.kIOReturnError):
+	case uint64(vIOReturnError):
 		return errors.New("hid: general error")
-	case C.IOReturn(C.kIOReturnNoMemory):
+	case uint64(vIOReturnNoMemory):
 		return errors.New("hid: can't allocate memory")
-	case C.IOReturn(C.kIOReturnNoResources):
+	case uint64(vIOReturnNoResources):
 		return errors.New("hid: resource shortage")
-	case C.IOReturn(C.kIOReturnIPCError):
+	case uint64(vIOReturnIPCError):
 		return errors.New("hid: error during IPC")
-	case C.IOReturn(C.kIOReturnNoDevice):
+	case uint64(vIOReturnNoDevice):
 		return errors.New("hid: no such device")
-	case C.IOReturn(C.kIOReturnNotPrivileged):
+	case uint64(vIOReturnNotPrivileged):
 		return errors.New("hid: privilege violation")
-	case C.IOReturn(C.kIOReturnBadArgument):
+	case uint64(vIOReturnBadArgument):
 		return errors.New("hid: invalid argument")
-	case C.IOReturn(C.kIOReturnLockedRead):
+	case uint64(vIOReturnLockedRead):
 		return errors.New("hid: device read locked")
-	case C.IOReturn(C.kIOReturnLockedWrite):
+	case uint64(vIOReturnLockedWrite):
 		return errors.New("hid: device write locked")
-	case C.IOReturn(C.kIOReturnExclusiveAccess):
+	case uint64(vIOReturnExclusiveAccess):
 		return errors.New("hid: exclusive access and device already open")
-	case C.IOReturn(C.kIOReturnBadMessageID):
+	case uint64(vIOReturnBadMessageID):
 		return errors.New("hid: sent/received messages had different msg_id")
-	case C.IOReturn(C.kIOReturnUnsupported):
+	case uint64(vIOReturnUnsupported):
 		return errors.New("hid: unsupported function")
-	case C.IOReturn(C.kIOReturnVMError):
+	case uint64(vIOReturnVMError):
 		return errors.New("hid: misc. VM failure")
-	case C.IOReturn(C.kIOReturnInternalError):
+	case uint64(vIOReturnInternalError):
 		return errors.New("hid: internal error")
-	case C.IOReturn(C.kIOReturnIOError):
+	case uint64(vIOReturnIOError):
 		return errors.New("hid: general I/O error")
-	case C.IOReturn(C.kIOReturnCannotLock):
+	case uint64(vIOReturnCannotLock):
 		return errors.New("hid: can't acquire lock")
-	case C.IOReturn(C.kIOReturnNotOpen):
+	case uint64(vIOReturnNotOpen):
 		return errors.New("hid: device not open")
-	case C.IOReturn(C.kIOReturnNotReadable):
+	case uint64(vIOReturnNotReadable):
 		return errors.New("hid: read not supported")
-	case C.IOReturn(C.kIOReturnNotWritable):
+	case uint64(vIOReturnNotWritable):
 		return errors.New("hid: write not supported")
-	case C.IOReturn(C.kIOReturnNotAligned):
+	case uint64(vIOReturnNotAligned):
 		return errors.New("hid: alignment error")
-	case C.IOReturn(C.kIOReturnBadMedia):
+	case uint64(vIOReturnBadMedia):
 		return errors.New("hid: media Error")
-	case C.IOReturn(C.kIOReturnStillOpen):
+	case uint64(vIOReturnStillOpen):
 		return errors.New("hid: device(s) still open")
-	case C.IOReturn(C.kIOReturnRLDError):
+	case uint64(vIOReturnRLDError):
 		return errors.New("hid: rld failure")
-	case C.IOReturn(C.kIOReturnDMAError):
+	case uint64(vIOReturnDMAError):
 		return errors.New("hid: DMA failure")
-	case C.IOReturn(C.kIOReturnBusy):
+	case uint64(vIOReturnBusy):
 		return errors.New("hid: device Busy")
-	case C.IOReturn(C.kIOReturnTimeout):
+	case uint64(vIOReturnTimeout):
 		return errors.New("hid: i/o timeout")
-	case C.IOReturn(C.kIOReturnOffline):
+	case uint64(vIOReturnOffline):
 		return errors.New("hid: device offline")
-	case C.IOReturn(C.kIOReturnNotReady):
+	case uint64(vIOReturnNotReady):
 		return errors.New("hid: not ready")
-	case C.IOReturn(C.kIOReturnNotAttached):
+	case uint64(vIOReturnNotAttached):
 		return errors.New("hid: device not attached")
-	case C.IOReturn(C.kIOReturnNoChannels):
+	case uint64(vIOReturnNoChannels):
 		return errors.New("hid: no DMA channels left")
-	case C.IOReturn(C.kIOReturnNoSpace):
+	case uint64(vIOReturnNoSpace):
 		return errors.New("hid: no space for data")
-	case C.IOReturn(C.kIOReturnPortExists):
+	case uint64(vIOReturnPortExists):
 		return errors.New("hid: port already exists")
-	case C.IOReturn(C.kIOReturnCannotWire):
+	case uint64(vIOReturnCannotWire):
 		return errors.New("hid: can't wire down physical memory")
-	case C.IOReturn(C.kIOReturnNoInterrupt):
+	case uint64(vIOReturnNoInterrupt):
 		return errors.New("hid: no interrupt attached")
-	case C.IOReturn(C.kIOReturnNoFrames):
+	case uint64(vIOReturnNoFrames):
 		return errors.New("hid: no DMA frames enqueued")
-	case C.IOReturn(C.kIOReturnMessageTooLarge):
+	case uint64(vIOReturnMessageTooLarge):
 		return errors.New("hid: oversized msg received on interrupt port")
-	case C.IOReturn(C.kIOReturnNotPermitted):
+	case uint64(vIOReturnNotPermitted):
 		return errors.New("hid: not permitted")
-	case C.IOReturn(C.kIOReturnNoPower):
+	case uint64(vIOReturnNoPower):
 		return errors.New("hid: no power to device")
-	case C.IOReturn(C.kIOReturnNoMedia):
+	case uint64(vIOReturnNoMedia):
 		return errors.New("hid: media not present")
-	case C.IOReturn(C.kIOReturnUnformattedMedia):
+	case uint64(vIOReturnUnformattedMedia):
 		return errors.New("hid: media not formatted")
-	case C.IOReturn(C.kIOReturnUnsupportedMode):
+	case uint64(vIOReturnUnsupportedMode):
 		return errors.New("hid: no such mode")
-	case C.IOReturn(C.kIOReturnUnderrun):
+	case uint64(vIOReturnUnderrun):
 		return errors.New("hid: data underrun")
-	case C.IOReturn(C.kIOReturnOverrun):
+	case uint64(vIOReturnOverrun):
 		return errors.New("hid: data overrun")
-	case C.IOReturn(C.kIOReturnDeviceError):
+	case uint64(vIOReturnDeviceError):
 		return errors.New("hid: the device is not working properly!")
-	case C.IOReturn(C.kIOReturnNoCompletion):
+	case uint64(vIOReturnNoCompletion):
 		return errors.New("hid: a completion routine is required")
-	case C.IOReturn(C.kIOReturnAborted):
+	case uint64(vIOReturnAborted):
 		return errors.New("hid: operation aborted")
-	case C.IOReturn(C.kIOReturnNoBandwidth):
+	case uint64(vIOReturnNoBandwidth):
 		return errors.New("hid: bus bandwidth would be exceeded")
-	case C.IOReturn(C.kIOReturnNotResponding):
+	case uint64(vIOReturnNotResponding):
 		return errors.New("hid: device not responding")
-	case C.IOReturn(C.kIOReturnIsoTooOld):
+	case uint64(vIOReturnIsoTooOld):
 		return errors.New("hid: isochronous I/O request for distant past!")
-	case C.IOReturn(C.kIOReturnIsoTooNew):
+	case uint64(vIOReturnIsoTooNew):
 		return errors.New("hid: isochronous I/O request for distant future")
-	case C.IOReturn(C.kIOReturnNotFound):
+	case uint64(vIOReturnNotFound):
 		return errors.New("hid: data was not found")
 	default:
 		return errors.New("hid: unknown error")
