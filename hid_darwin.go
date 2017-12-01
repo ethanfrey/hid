@@ -17,7 +17,6 @@ static inline CFIndex cfstring_utf8_length(CFStringRef str, CFIndex *need) {
 void deviceUnplugged(IOHIDDeviceRef osd, IOReturn ret, void *dev);
 
 void reportCallback(void *context, IOReturn result, void *sender, IOHIDReportType report_type, uint32_t report_id, uint8_t *report, CFIndex report_length);
-
 */
 import "C"
 
@@ -30,6 +29,10 @@ import (
 	"unsafe"
 )
 
+func fin(val C.ulong) uint64 {
+  return uint64(val)
+}
+
 // This table is a necessary evil
 // depending on the osx version (10.12, 10.13) the constants are variously
 // uint64 or int64 and not always the same as C.IOReturn type.
@@ -38,59 +41,60 @@ import (
 // bytes, which works in any version. However, go 1.9+ doesn't allow you to cast
 // int64 to uint64 with constants, only with variables. So, we must assign all the
 // constants to variables, before casting them in the switch.
+
 var (
-	vIOReturnSuccess          = C.kIOReturnSuccess
-	vIOReturnError            = C.kIOReturnError
-	vIOReturnNoMemory         = C.kIOReturnNoMemory
-	vIOReturnNoResources      = C.kIOReturnNoResources
-	vIOReturnIPCError         = C.kIOReturnIPCError
-	vIOReturnNoDevice         = C.kIOReturnNoDevice
-	vIOReturnNotPrivileged    = C.kIOReturnNotPrivileged
-	vIOReturnBadArgument      = C.kIOReturnBadArgument
-	vIOReturnLockedRead       = C.kIOReturnLockedRead
-	vIOReturnLockedWrite      = C.kIOReturnLockedWrite
-	vIOReturnExclusiveAccess  = C.kIOReturnExclusiveAccess
-	vIOReturnBadMessageID     = C.kIOReturnBadMessageID
-	vIOReturnUnsupported      = C.kIOReturnUnsupported
-	vIOReturnVMError          = C.kIOReturnVMError
-	vIOReturnInternalError    = C.kIOReturnInternalError
-	vIOReturnIOError          = C.kIOReturnIOError
-	vIOReturnCannotLock       = C.kIOReturnCannotLock
-	vIOReturnNotOpen          = C.kIOReturnNotOpen
-	vIOReturnNotReadable      = C.kIOReturnNotReadable
-	vIOReturnNotWritable      = C.kIOReturnNotWritable
-	vIOReturnNotAligned       = C.kIOReturnNotAligned
-	vIOReturnBadMedia         = C.kIOReturnBadMedia
-	vIOReturnStillOpen        = C.kIOReturnStillOpen
-	vIOReturnRLDError         = C.kIOReturnRLDError
-	vIOReturnDMAError         = C.kIOReturnDMAError
-	vIOReturnBusy             = C.kIOReturnBusy
-	vIOReturnTimeout          = C.kIOReturnTimeout
-	vIOReturnOffline          = C.kIOReturnOffline
-	vIOReturnNotReady         = C.kIOReturnNotReady
-	vIOReturnNotAttached      = C.kIOReturnNotAttached
-	vIOReturnNoChannels       = C.kIOReturnNoChannels
-	vIOReturnNoSpace          = C.kIOReturnNoSpace
-	vIOReturnPortExists       = C.kIOReturnPortExists
-	vIOReturnCannotWire       = C.kIOReturnCannotWire
-	vIOReturnNoInterrupt      = C.kIOReturnNoInterrupt
-	vIOReturnNoFrames         = C.kIOReturnNoFrames
-	vIOReturnMessageTooLarge  = C.kIOReturnMessageTooLarge
-	vIOReturnNotPermitted     = C.kIOReturnNotPermitted
-	vIOReturnNoPower          = C.kIOReturnNoPower
-	vIOReturnNoMedia          = C.kIOReturnNoMedia
-	vIOReturnUnformattedMedia = C.kIOReturnUnformattedMedia
-	vIOReturnUnsupportedMode  = C.kIOReturnUnsupportedMode
-	vIOReturnUnderrun         = C.kIOReturnUnderrun
-	vIOReturnOverrun          = C.kIOReturnOverrun
-	vIOReturnDeviceError      = C.kIOReturnDeviceError
-	vIOReturnNoCompletion     = C.kIOReturnNoCompletion
-	vIOReturnAborted          = C.kIOReturnAborted
-	vIOReturnNoBandwidth      = C.kIOReturnNoBandwidth
-	vIOReturnNotResponding    = C.kIOReturnNotResponding
-	vIOReturnIsoTooOld        = C.kIOReturnIsoTooOld
-	vIOReturnIsoTooNew        = C.kIOReturnIsoTooNew
-	vIOReturnNotFound         = C.kIOReturnNotFound
+	vIOReturnSuccess           uint64 = C.kIOReturnSuccess
+	vIOReturnError             uint64 = C.kIOReturnError
+	vIOReturnNoMemory          uint64 = C.kIOReturnNoMemory
+	vIOReturnNoResources       uint64 = C.kIOReturnNoResources
+	vIOReturnIPCError          uint64 = C.kIOReturnIPCError
+	vIOReturnNoDevice          uint64 = C.kIOReturnNoDevice
+	vIOReturnNotPrivileged     uint64 = C.kIOReturnNotPrivileged
+	vIOReturnBadArgument       uint64 = C.kIOReturnBadArgument
+	vIOReturnLockedRead        uint64 = C.kIOReturnLockedRead
+	vIOReturnLockedWrite       uint64 = C.kIOReturnLockedWrite
+	vIOReturnExclusiveAccess   uint64 = C.kIOReturnExclusiveAccess
+	vIOReturnBadMessageID      uint64 = C.kIOReturnBadMessageID
+	vIOReturnUnsupported       uint64 = C.kIOReturnUnsupported
+	vIOReturnVMError           uint64 = C.kIOReturnVMError
+	vIOReturnInternalError     uint64 = C.kIOReturnInternalError
+	vIOReturnIOError           uint64 = C.kIOReturnIOError
+	vIOReturnCannotLock        uint64 = C.kIOReturnCannotLock
+	vIOReturnNotOpen           uint64 = C.kIOReturnNotOpen
+	vIOReturnNotReadable       uint64 = C.kIOReturnNotReadable
+	vIOReturnNotWritable       uint64 = C.kIOReturnNotWritable
+	vIOReturnNotAligned        uint64 = C.kIOReturnNotAligned
+	vIOReturnBadMedia          uint64 = C.kIOReturnBadMedia
+	vIOReturnStillOpen         uint64 = C.kIOReturnStillOpen
+	vIOReturnRLDError          uint64 = C.kIOReturnRLDError
+	vIOReturnDMAError          uint64 = C.kIOReturnDMAError
+	vIOReturnBusy              uint64 = C.kIOReturnBusy
+	vIOReturnTimeout           uint64 = C.kIOReturnTimeout
+	vIOReturnOffline           uint64 = C.kIOReturnOffline
+	vIOReturnNotReady          uint64 = C.kIOReturnNotReady
+	vIOReturnNotAttached       uint64 = C.kIOReturnNotAttached
+	vIOReturnNoChannels        uint64 = C.kIOReturnNoChannels
+	vIOReturnNoSpace           uint64 = C.kIOReturnNoSpace
+	vIOReturnPortExists        uint64 = C.kIOReturnPortExists
+	vIOReturnCannotWire        uint64 = C.kIOReturnCannotWire
+	vIOReturnNoInterrupt       uint64 = C.kIOReturnNoInterrupt
+	vIOReturnNoFrames          uint64 = C.kIOReturnNoFrames
+	vIOReturnMessageTooLarge   uint64 = C.kIOReturnMessageTooLarge
+	vIOReturnNotPermitted      uint64 = C.kIOReturnNotPermitted
+	vIOReturnNoPower           uint64 = C.kIOReturnNoPower
+	vIOReturnNoMedia           uint64 = C.kIOReturnNoMedia
+	vIOReturnUnformattedMedia  uint64 = C.kIOReturnUnformattedMedia
+	vIOReturnUnsupportedMode   uint64 = C.kIOReturnUnsupportedMode
+	vIOReturnUnderrun          uint64 = C.kIOReturnUnderrun
+	vIOReturnOverrun           uint64 = C.kIOReturnOverrun
+	vIOReturnDeviceError       uint64 = C.kIOReturnDeviceError
+	vIOReturnNoCompletion      uint64 = C.kIOReturnNoCompletion
+	vIOReturnAborted           uint64 = C.kIOReturnAborted
+	vIOReturnNoBandwidth       uint64 = C.kIOReturnNoBandwidth
+	vIOReturnNotResponding     uint64 = C.kIOReturnNotResponding
+	vIOReturnIsoTooOld         uint64 = C.kIOReturnIsoTooOld
+	vIOReturnIsoTooNew         uint64 = C.kIOReturnIsoTooNew
+	vIOReturnNotFound          uint64 = C.kIOReturnNotFound
 )
 
 func ioReturnToErr(ret C.IOReturn) error {
