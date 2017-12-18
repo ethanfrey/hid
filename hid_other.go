@@ -1,7 +1,6 @@
-// +build !linux
-// +build !darwin
-// +build !windows
-
+// +build !cgo !linux
+// +build !cgo !windows
+// +build !cgo !darwin
 /*
 hid_other provides an empty implementation for unsupported
 platforms that compiles but returns errors when used.
